@@ -1,3 +1,14 @@
+'''
+Good PD Values without Disturbance
+python3 main.py kp=5 ki=0 kd=75 sim_time=10 disturbance_flag=True
+
+Good PID Values with Disturbance
+python3 main.py kp=700 ki=0 kd=7500 sim_time=10 disturbance_flag=True
+
+'''
+
+import utils
+import time
 
 class Controller1D():
     """
@@ -17,6 +28,9 @@ class Controller1D():
         self.kp_z = pid_gains.kp
         self.ki_z = pid_gains.ki
         self.kd_z = pid_gains.kd
+        self.params = utils.CrazyflieParams
+        self.E_last = 0
+        self.E_accum = 0
 
     def compute_commands(self, setpoint, state):
         """
@@ -27,8 +41,19 @@ class Controller1D():
         Returns:
         - U (float): total upward thrust
         """
-        U = 0
 
-        # your code here
+        # t_elap
+        E = setpoint.z_pos - state.z_pos
+        E_dot = (E-self.E_last)
+        self.E_last = E
+        self.E_accum += E
+
+
+        U = 0 # force for upward thrusts
+        # PD
+        # z_accel = self.kd_z*E_dot+self.kp_z*E
+        #PID 
+        z_accel = self.kd_z*E_dot+self.kp_z*E+self.ki_z*self.E_accum
+        U = self.params.mass*(z_accel+self.params.g)
 
         return U
