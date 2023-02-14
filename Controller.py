@@ -1,6 +1,6 @@
 '''
 Good PD Values without Disturbance
-python3 main.py kp=5 ki=0 kd=75 sim_time=10 disturbance_flag=True
+python3 main.py kp=5 ki=0 kd=5 sim_time=10 disturbance_flag=False
 
 Good PID Values with Disturbance
 python3 main.py kp=700 ki=0 kd=7500 sim_time=10 disturbance_flag=True
@@ -32,7 +32,7 @@ class Controller1D():
         self.E_last = 0
         self.E_accum = 0
 
-    def compute_commands(self, setpoint, state):
+    def compute_commands(self, setpoint, state, time_delta):
         """
         Inputs:
         - setpoint (State dataclass):   the desired control setpoint
@@ -42,12 +42,14 @@ class Controller1D():
         - U (float): total upward thrust
         """
 
-        # t_elap
         E = setpoint.z_pos - state.z_pos
-        E_dot = (E-self.E_last)
+
+        # Two ways of getting E_dot
+        # E_dot = (E-self.E_last)/time_delta # if we use this divide it by the elapsed time
+        E_dot = setpoint.z_vel - state.z_vel
+
         self.E_last = E
         self.E_accum += E
-
 
         U = 0 # force for upward thrusts
         # PD
